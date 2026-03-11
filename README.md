@@ -18,7 +18,7 @@
   - Confirmed affected version: v2.2.17
   - Validation date: 2026-03-11
   - Version-specific note: this v2.2.17 tree does not expose `FETCHER_ALLOW_PRIVATE_NETWORKS`; the `/v1/discover` path is missing a fetcher-side private-network check entirely. `MEDIA_PROXY_ALLOW_PRIVATE_NETWORKS` exists and defaults to disabled, but 100.64.0.0/10 is still allowed because of incomplete classification.
-  - Related advisory note: This issue appears related to, but distinct from, GHSA-xwh2-742g-w3wp, which was published on January 7, 2026 and patched in 2.2.16. In the tested v2.2.17 tree, loopback/private blocking exists in the media proxy, but 100.64.0.0/10 is still allowed due to incomplete non-public IP classification. Additionally, /v1/discover remains a separate SSRF request path without a private-network destination check.
+  - Related advisory note: This issue appears related to, but distinct from, [GHSA-xwh2-742g-w3wp](https://github.com/miniflux/v2/security/advisories/GHSA-xwh2-742g-w3wp), which was published on January 7, 2026 and patched in 2.2.16. In the tested v2.2.17 tree, loopback/private blocking exists in the media proxy, but `100.64.0.0/10` is still allowed due to incomplete non-public IP classification. Additionally, `/v1/discover` remains a separate SSRF request path without a private-network destination check.
 
   ### Details
 
@@ -65,7 +65,7 @@
 
   1. Use Miniflux v2.2.17.
   2. Keep the default `MEDIA_PROXY_ALLOW_PRIVATE_NETWORKS=0`.
-  3. Ensure Miniflux can reach an HTTP service in 100.64.0.0/10. A Docker network or a loopback/dummy interface is sufficient; no physical host is required.
+  3. Ensure Miniflux can reach an HTTP service in `100.64.0.0/10`. A Docker network or a loopback/dummy interface is sufficient; no physical host is required.
   4. Default `MEDIA_PROXY_MODE=http-only` is sufficient as long as the injected media URL uses `http://`.
 
   #### PoC A: direct SSRF through /v1/discover (v2.2.17-specific behavior)
@@ -88,7 +88,7 @@
   Expected / observed:
 
   1. Miniflux performs a server-side GET to the user-supplied URL.
-  2. If the 100.64.0.0/10 target responds with a valid feed, Miniflux returns it as a discovered subscription.
+  2. If the `100.64.0.0/10` target responds with a valid feed, Miniflux returns it as a discovered subscription.
 
   Example response:
 
@@ -137,7 +137,7 @@
 
   1. The API response contains a signed absolute `/proxy/...` URL for the attacker-controlled `img src`.
   2. The `/proxy/...` URL is accessible without authentication.
-  3. A GET to that URL returns the HTTP status and body from the internal 100.64.0.0/10 target.
+  3. A GET to that URL returns the HTTP status and body from the internal `100.64.0.0/10` target.
 
   Example result:
 
@@ -169,7 +169,7 @@
   Expected / observed:
 
   1. A loopback target is rejected with `403 Forbidden`.
-  2. A 100.64.0.0/10 target succeeds with `200 OK` and returns the internal body.
+  2. A `100.64.0.0/10` target succeeds with `200 OK` and returns the internal body.
 
   This demonstrates that the proxy is not simply "open to everything"; the failure is specific to incomplete non-public IP classification.
 
