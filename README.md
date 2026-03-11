@@ -1,3 +1,5 @@
+# Miniflux v2.2.17: /v1/discover SSRF and incomplete 100.64.0.0/10 media-proxy filtering allow internal access and anonymous response exfiltration
+
 ## Description
 
   ### Summary
@@ -16,6 +18,7 @@
   - Confirmed affected version: v2.2.17
   - Validation date: 2026-03-11
   - Version-specific note: this v2.2.17 tree does not expose `FETCHER_ALLOW_PRIVATE_NETWORKS`; the `/v1/discover` path is missing a fetcher-side private-network check entirely. `MEDIA_PROXY_ALLOW_PRIVATE_NETWORKS` exists and defaults to disabled, but 100.64.0.0/10 is still allowed because of incomplete classification.
+  - Related advisory note: This issue appears related to, but distinct from, GHSA-xwh2-742g-w3wp, which was published on January 7, 2026 and patched in 2.2.16. In the tested v2.2.17 tree, loopback/private blocking exists in the media proxy, but 100.64.0.0/10 is still allowed due to incomplete non-public IP classification. Additionally, /v1/discover remains a separate SSRF request path without a private-network destination check.
 
   ### Details
 
@@ -29,6 +32,7 @@
   3. The fetcher used by this path creates a normal HTTP client and performs `GET` requests, but there is no private-network gate in `ExecuteRequest`:
      `internal/reader/fetcher/request_builder.go:132`
      `internal/reader/fetcher/request_builder.go:199`
+  4. `/v1/discover` is not a blind SSRF primitive in the strict sense: it returns discovery results when the target responds with a valid feed, and returns parser/fetch errors otherwise. However, it does not reflect arbitrary response bodies the way `/proxy/...` does.
 
   Media-proxy bypass and exfiltration path in v2.2.17:
 
@@ -92,7 +96,7 @@
   [{"title":"http://100.64.0.1:18080/feed.xml","url":"http://100.64.0.1:18080/feed.xml","type":"rss"}]
   ```
 
-  This demonstrates that in v2.2.17 the discovery path itself is an unrestricted SSRF primitive; it does not rely on `FETCHER_ALLOW_PRIVATE_NETWORKS` because that option is not present in this version.
+  This demonstrates that in v2.2.17 the discovery path itself is an unrestricted, result-bearing SSRF primitive; it does not rely on `FETCHER_ALLOW_PRIVATE_NETWORKS` because that option is not present in this version. It provides success/error feedback and discovered feed metadata, but not arbitrary raw response-body reflection.
 
   #### PoC B: end-to-end anonymous exfiltration through the public media proxy
 
