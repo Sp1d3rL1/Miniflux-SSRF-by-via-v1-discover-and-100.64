@@ -96,7 +96,16 @@
   [{"title":"http://100.64.0.1:18080/feed.xml","url":"http://100.64.0.1:18080/feed.xml","type":"rss"}]
   ```
 
-  This demonstrates that in v2.2.17 the discovery path itself is an unrestricted, result-bearing SSRF primitive; it does not rely on `FETCHER_ALLOW_PRIVATE_NETWORKS` because that option is not present in this version. It provides success/error feedback and discovered feed metadata, but not arbitrary raw response-body reflection.
+  This demonstrates that in v2.2.17 the discovery path itself is an unrestricted, result-bearing SSRF primitive. It provides success/error feedback and discovered feed metadata, but not arbitrary raw response-body reflection.
+
+  #### When it comes to dnslog
+
+Request:
+  <img width="1248" height="578" alt="b7aebcc18ca504954e678dea5b4c10df" src="https://github.com/user-attachments/assets/746b36c5-840a-479a-a90a-c06f4e31d015" />
+
+Result:
+  <img width="2424" height="1252" alt="193f5d17d6a5053a125d19e59cda62ce" src="https://github.com/user-attachments/assets/5fe07c0e-e995-4d02-bf98-5e050b36c308" />
+
 
   #### PoC B: end-to-end anonymous exfiltration through the public media proxy
 
@@ -172,6 +181,9 @@
   2. A `100.64.0.0/10` target succeeds with `200 OK` and returns the internal body.
 
   This demonstrates that the proxy is not simply "open to everything"; the failure is specific to incomplete non-public IP classification.
+
+  <img width="1188" height="1006" alt="71b0faa968e41d75a696165f894e2a75" src="https://github.com/user-attachments/assets/c2e5444a-18fc-4783-83be-7a938b3cede0" />
+
 
   ### Impact
 
